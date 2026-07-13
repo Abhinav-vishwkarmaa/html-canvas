@@ -111,6 +111,15 @@ export class AnalyticsService implements OnModuleInit, OnModuleDestroy {
     return saved;
   }
 
+  async getVisit(id: number): Promise<Visit | null> {
+    if (!id) return null;
+    const cached = await this.redis.get<Visit>(`analytics:visit:${id}`);
+    if (cached) return cached;
+    const visit = await this.visitRepository.findOne({ where: { id } });
+    if (visit) await this.redis.set(`analytics:visit:${id}`, visit, 10);
+    return visit;
+  }
+
   async updateVisit(
     id: number,
     status: VisitStatus,
